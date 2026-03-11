@@ -56,18 +56,12 @@ export const useLeadTracking = () => {
     [utmParams]
   );
 
-  // 🔹 Specific Event
+  // 🔹 Specific Event (Disabled to prevent multiple events)
   const trackSpecificEvent = useCallback(
     (action, category, label, extra = {}) => {
-      ReactGA.event({
-        action,
-        category,
-        label,
-        ...utmParams,
-        ...extra,
-      });
+      // Disabled as requested to prevent redundant events like Footer_section_fill_form
     },
-    [utmParams]
+    []
   );
 
   // ----------------------------------
@@ -75,30 +69,12 @@ export const useLeadTracking = () => {
   // ----------------------------------
   const trackButtonClick = useCallback(
     (source, action, propertyType = null) => {
-      const normalizedSource = normalize(source);
-      const normalizedAction = normalize(action);
       const label = `${source}${propertyType ? ` - ${propertyType}` : ""}`;
 
       // 1️⃣ General event
-      trackGeneralEvent(normalizedAction, "Button Click", label, {
-        lead_source: source,
-        property_type: propertyType,
-        funnel_stage: "interest",
-      });
-
-      // 2️⃣ Specific event
-      trackSpecificEvent(
-        `${normalizedSource}_${normalizedAction}`,
-        "Button Click - Specific",
-        label,
-        {
-          lead_source: source,
-          property_type: propertyType,
-          funnel_stage: "interest",
-        }
-      );
+     
     },
-    [trackGeneralEvent, trackSpecificEvent]
+    [trackGeneralEvent]
   );
 
   // ----------------------------------
@@ -106,32 +82,17 @@ export const useLeadTracking = () => {
   // ----------------------------------
   const trackFormSubmission = useCallback(
     (source, formType, propertyType = null) => {
-      const normalizedSource = normalize(source);
-      const normalizedForm = normalize(formType);
       const label = `${source}${propertyType ? ` - ${propertyType}` : ""}`;
 
-      // 1️⃣ General event
-      trackGeneralEvent(`${normalizedForm}_submit`, "Form Submission", label, {
+      // 1️⃣ General event - use contact_form_submit as requested
+      trackGeneralEvent("CONTACT_FORM_SUBMIT", "Form Submission", label, {
         lead_source: source,
         property_type: propertyType,
         funnel_stage:
           formType === "contact_form" ? "lead" : "site_visit_request",
       });
-
-      // 2️⃣ Specific event
-      trackSpecificEvent(
-        `${normalizedSource}_${normalizedForm}_submit`,
-        "Form Submission - Specific",
-        label,
-        {
-          lead_source: source,
-          property_type: propertyType,
-          funnel_stage:
-            formType === "contact_form" ? "lead" : "site_visit_request",
-        }
-      );
     },
-    [trackGeneralEvent, trackSpecificEvent]
+    [trackGeneralEvent]
   );
 
   // ----------------------------------
@@ -140,32 +101,15 @@ export const useLeadTracking = () => {
   const trackFormOpen = useCallback(
     (source, formType, propertyType = null) => {
       const normalizedSource = normalize(source);
-      const normalizedForm = normalize(formType);
       const label =
         propertyType && !normalizedSource.includes(normalize(propertyType))
           ? `${source} - ${propertyType}`
           : source;
 
-      // 1️⃣ General event
-      trackGeneralEvent(`${normalizedForm}_opened`, "Form Interaction", label, {
-        lead_source: source,
-        property_type: propertyType,
-        funnel_stage: "consideration",
-      });
-
-      // 2️⃣ Specific event
-      trackSpecificEvent(
-        `${normalizedSource}_${normalizedForm}_opened`,
-        "Form Interaction - Specific",
-        label,
-        {
-          lead_source: source,
-          property_type: propertyType,
-          funnel_stage: "consideration",
-        }
-      );
+      // 1️⃣ General event - use contact_form_opened for opening
+      
     },
-    [trackGeneralEvent, trackSpecificEvent]
+    [trackGeneralEvent]
   );
 
   return {
@@ -190,7 +134,7 @@ export const LEAD_SOURCES = {
   MASTER_PLAN: "master_plan_section",
   FOOTER: "footer_section",
   CONTACT_FORM_LINK: "contact_form_internal_link",
-  UNKNOWN: "unknown_source",
+  UNKNOWN: "unknown_source", 
 };
 
 export const PROPERTY_TYPES = {

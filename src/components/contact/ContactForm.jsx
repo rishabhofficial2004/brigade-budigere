@@ -11,10 +11,6 @@ import { useLeadTracking, LEAD_SOURCES } from "../../hooks/useLeadTracking";
 // Import environment variables
 const trackingId = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
-if (trackingId) {
-  ReactGA.initialize(trackingId);
-}
-
 const ContactForm = ({ contactmodal, setContactModal, leadSource }) => {
   const { trackFormSubmission } = useLeadTracking();
   const [name, setName] = useState("");

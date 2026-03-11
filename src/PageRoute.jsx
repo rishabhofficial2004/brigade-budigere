@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useSpring, animated } from "react-spring";
 import ReactGA from "react-ga4";
 
@@ -16,8 +16,30 @@ import { MasterPlan } from "./sections/MasterPlan";
 import { Gallery } from "./sections/Gallery";
 import ContactForm from "./components/contact/ContactForm";
 import { useLeadTracking } from "./hooks/useLeadTracking";
-// Add this import if you have the useLeadTracking hook
-// import { useLeadTracking } from "./hooks/useLeadTracking";
+import { trackContactFormOpen } from "./analytics";
+
+const TrackPageViews = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const source = params.get("utmSource") || params.get("utm_source");
+    const medium = params.get("utmMedium") || params.get("utm_medium");
+    const campaign = params.get("utmCampaign") || params.get("utm_campaign");
+    const keyword = params.get("utmKeyword") || params.get("utm_term");
+
+    ReactGA.send({
+      hitType: "pageview",
+      page: location.pathname + location.search,
+      utm_source: source,
+      utm_medium: medium,
+      utm_campaign: campaign,
+      utm_term: keyword,
+    });
+  }, [location]);
+
+  return null;
+};
 
 const RevealOnScroll = ({ children }) => {
   const ref = useRef(null);
@@ -57,7 +79,6 @@ export const PageRoute = () => {
   const [sitevisitmodal, setSiteVisitModal] = useState(false);
   const [contactmodal, setContactModal] = useState(false);
   const [leadSource, setLeadSource] = useState(null);
-  const pageViewSentRef = useRef(false);
   
   // Uncomment this if you have the useLeadTracking hook
   const { trackFormOpen } = useLeadTracking();
@@ -66,31 +87,13 @@ export const PageRoute = () => {
     setLeadSource({ source, propertyType });
     setContactModal(true);
     
-    // Uncomment this if you have the useLeadTracking hook
-    trackFormOpen(source, 'contact_form', propertyType);
+    // Track form opening
+    trackContactFormOpen(source);
   };
 
-  useEffect(() => {
-    if (pageViewSentRef.current) return;
-    pageViewSentRef.current = true;
-
-    const params = new URLSearchParams(window.location.search);
-    const source = params.get("utmSource");
-    const medium = params.get("utmMedium");
-    const campaign = params.get("utmCampaign");
-    const keyword = params.get("utmKeyword");
-
-    ReactGA.send({
-      hitType: "pageview",
-      utmSource: source,
-      utmMedium: medium,
-      utmCampaign: campaign,
-      utmKeyowrd: keyword,
-    });
-  }, []);
-
   return (
-    <BrowserRouter>
+    <>
+      <TrackPageViews />
       {/* {sitevisitmodal && (
         <SiteVisitForm
           sitevisitmodal={sitevisitmodal}
@@ -254,6 +257,6 @@ export const PageRoute = () => {
         />
       </Routes>
       <Footer openContactModal={openContactModal} />
-    </BrowserRouter>
+    </>
   );
 };
